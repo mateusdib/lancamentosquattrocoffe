@@ -18,8 +18,7 @@ namespace LancamentosQuattroCoffe.Controllers
 
         public LancamentosController(IConfiguration config)
         {
-            _config = config;
-            _spreadsheetId = _config["Google:SpreadsheetId"];
+            _spreadsheetId = "1ui79wvlER3bK2TBycYDIjWbX6bMPRAiUgLsXKljcsf4";
             var json = Environment.GetEnvironmentVariable(@"{
   ""type"": ""service_account"",
   ""project_id"": ""pragmatic-cat-198719"",
