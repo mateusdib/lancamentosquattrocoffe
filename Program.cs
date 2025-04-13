@@ -33,4 +33,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+app.MapGet("/", () => "API de Lançamentos funcionando!");
+
+app.Run("http://0.0.0.0:80");
