@@ -1,5 +1,10 @@
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(8080); // ou Listen(IPAddress.Any, 8080)
+});
+
 // Add services to the container.
 builder.Services.AddCors(options =>
 {
@@ -32,7 +37,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapGet("/", () => "API de LanÁamentos funcionando!");
+app.MapGet("/", () => "API de Lan√ßamentos funcionando!");
 
 if (!app.Environment.IsDevelopment())
 {
