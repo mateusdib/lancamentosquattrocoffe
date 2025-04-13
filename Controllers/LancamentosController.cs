@@ -47,7 +47,7 @@ namespace LancamentosQuattroCoffe.Controllers
             {
                 Values = new List<IList<object>>
                 {
-                    new List<object> { lancamento.Data, lancamento.Descricao, lancamento.Valor }
+                    new List<object> { lancamento.Descricao, lancamento.Categoria, lancamento.Valor }
                 }
             };
 
@@ -58,5 +58,6 @@ namespace LancamentosQuattroCoffe.Controllers
 
             return Ok(new { message = "Dados salvos com sucesso!" });
         }
+
     }
 }
