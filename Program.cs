@@ -25,9 +25,8 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseHttpsRedirection();
 }
-
-//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
@@ -35,4 +34,13 @@ app.MapControllers();
 
 app.MapGet("/", () => "API de Lançamentos funcionando!");
 
-app.Run("http://0.0.0.0:80");
+if (!app.Environment.IsDevelopment())
+{
+    app.Run("http://0.0.0.0:80");
+}
+else
+{
+    app.Run();
+}
+
+

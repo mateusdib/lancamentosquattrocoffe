@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace LancamentosQuattroCoffe.Controllers
 {
@@ -9,33 +10,34 @@ namespace LancamentosQuattroCoffe.Controllers
         [HttpGet]
         public IActionResult Get([FromQuery] string centroCusto, [FromQuery] decimal valor)
         {
-            var rateios = new List<Tuple<string, decimal>>();
 
-            switch (centroCusto)
+            if (valor <= 0)
+                return BadRequest("O valor da despesa deve ser maior que zero.");
+
+            var percentuaisSocietariosJson = Environment.GetEnvironmentVariable("percentuaisSocietariosEnv");
+
+            if (string.IsNullOrWhiteSpace(percentuaisSocietariosJson))
+                return StatusCode(500, "Variável de ambiente 'percentuaisSocietariosEnv' não está definida.");
+
+            Dictionary<string, Dictionary<string, decimal>> dados;
+            try
             {
-                case "Mantibio Geral":
-                    rateios.Add(new Tuple<string, decimal>("Equipe A", valor * 0.5m));
-                    rateios.Add(new Tuple<string, decimal>("Equipe B", valor * 0.5m));
-                    break;
-
-                case "Capao Sujo Geral":
-                    rateios.Add(new Tuple<string, decimal>("Capão Norte", valor * 0.6m));
-                    rateios.Add(new Tuple<string, decimal>("Capão Sul", valor * 0.4m));
-                    break;
-
-                case "Percentual Societario":
-                    rateios.Add(new Tuple<string, decimal>("Sócio 1", valor * 0.7m));
-                    rateios.Add(new Tuple<string, decimal>("Sócio 2", valor * 0.3m));
-                    break;
-
-                case "Combustivel Percentual societario":
-                    rateios.Add(new Tuple<string, decimal>("Carro 1", valor * 0.4m));
-                    rateios.Add(new Tuple<string, decimal>("Carro 2", valor * 0.6m));
-                    break;
-
-                default:
-                    return BadRequest("Centro de custo inválido.");
+                dados = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, decimal>>>(percentuaisSocietariosJson);
             }
+            catch (JsonException)
+            {
+                return StatusCode(500, "Erro ao desserializar os percentuais societários. Verifique o formato do JSON na variavel de ambiente.");
+            }
+
+            if (!dados.ContainsKey(centroCusto))
+                return BadRequest("Centro de custo inválido.");
+
+            var percentuais = dados[centroCusto];
+
+            var rateios = percentuais.ToDictionary(
+                x => x.Key,
+                x => Math.Round((x.Value / 100m) * valor, 2)
+            );
 
             return Ok(rateios);
         }

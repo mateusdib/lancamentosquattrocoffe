@@ -5,8 +5,8 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-     
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "percentuaisSocietariosEnv": "{\"Mantibio\":{\"Mikael\":25,\"Matheus\":25,\"Marcus\":25,\"Jonathan\":25},\"Capao Sujo\":{\"Mikael\":27.7953846153846,\"Matheus\":35.3846153846154,\"Marcus\":24.55,\"Jonathan\":12.27},\"Percentual Societario Todas Fazendas\":{\"Mikael\":26.4,\"Matheus\":30.19,\"Marcus\":24.78,\"Jonathan\":18.64},\"Combustível Carro Mantibio\":{\"Matheus\":33.33,\"Marcus\":33.33,\"Jonathan\":33.33},\"Combustível Carro Capao Sujo\":{\"Matheus\":49,\"Marcus\":34,\"Jonathan\":17},\"Combustível Carro Percentual societario\":{\"Matheus\":41.17,\"Marcus\":33.67,\"Jonathan\":25.17}}"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5000"
