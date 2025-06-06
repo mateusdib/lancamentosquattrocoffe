@@ -16,20 +16,22 @@ namespace LancamentosQuattroCoffe.Controllers
         private readonly IConfiguration _config;
         private readonly string _spreadsheetId;
         private readonly SheetsService _sheetsService;
+        private readonly Service.Lancamento.ILancamentoService _lancamentoService;
 
-        public LancamentosController(IConfiguration config)
+        public LancamentosController(IConfiguration config, Service.Lancamento.ILancamentoService lancamentoService)
         {
             _spreadsheetId = "1ui79wvlER3bK2TBycYDIjWbX6bMPRAiUgLsXKljcsf4";
 
+            _lancamentoService = lancamentoService;
 
             var jsonCredentials = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS_JSON");
 
             if (string.IsNullOrEmpty(jsonCredentials))
             {
-                throw new InvalidOperationException("A vari√°vel de ambiente GOOGLE_APPLICATION_CREDENTIALS_JSON n√£o foi definida.");
+                throw new InvalidOperationException("A vari·vel de ambiente GOOGLE_APPLICATION_CREDENTIALS_JSON n„o foi definida.");
             }
 
-            // Cria√ß√£o das credenciais a partir do JSON
+            // CriaÁ„o das credenciais a partir do JSON
             var credential = GoogleCredential.FromJson(jsonCredentials)
                 .CreateScoped(SheetsService.Scope.Spreadsheets);
 
@@ -38,78 +40,83 @@ namespace LancamentosQuattroCoffe.Controllers
                 HttpClientInitializer = credential,
                 ApplicationName = "Lancamentos .NET"
             });
+            _lancamentoService = lancamentoService;
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Lancamento lancamento)
         {
-            var range = "A2";
-            var valueRange = new ValueRange
+            var result = await _lancamentoService.SalvarAsync(lancamento);
+            if (result != 0)
             {
-                Values = new List<IList<object>>
-                {
-                    new List<object> { "=ROW()-1", DateTime.Now.Date.ToShortDateString(), lancamento.Descricao, lancamento.Categoria, lancamento.Valor,lancamento.CentroDeCusto,"Pendente" }
-                }
-            };
+                return Ok(new { message = "Dados salvos com sucesso!" });
 
-            var appendRequest = _sheetsService.Spreadsheets.Values.Append(valueRange, _spreadsheetId, range);
-            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
-
-            var response = await appendRequest.ExecuteAsync();
-
-            return Ok(new { message = "Dados salvos com sucesso!" });
-        }
-        [HttpGet]
-        public async Task<IActionResult> Get()
-        {
-            var range = "A2:H"; // Dados come√ßam da linha 2 at√© a F (Data, Descri√ß√£o, Categoria, Valor, CentroDeCusto, Status)
-            var request = _sheetsService.Spreadsheets.Values.Get(_spreadsheetId, range);
-            var response = await request.ExecuteAsync();
-
-            var values = response.Values;
-            var lista = new ConcurrentBag<Lancamento>();
-
-            if (values != null && values.Count > 0)
+            }
+            else
             {
-                // Pegando apenas os √∫ltimos 20
-
-
-                Parallel.ForEach(values, row =>
-                {
-
-                    var lancamento = new Lancamento
-                    {
-                        Id = Int32.TryParse(row[0]?.ToString(), out var id) ? id : 0,
-                        DataLancamento = DateTime.TryParse(row[1]?.ToString(), out var data) ? data : DateTime.Now,
-                        Descricao = row[2]?.ToString(),
-                        Categoria = row[3]?.ToString(),
-                        Valor = ConverterToDecimal(row[4]?.ToString()),
-                        CentroDeCusto = row[5]?.ToString(),
-                        Status = row[6]?.ToString() ?? "noExist",
-                    };
-
-                    lista.Add(lancamento);
-                });
-
-                //foreach (var row in values)
-                //{
-                //    if (row.Count < 6) continue;
-
-                //    var lancamento = new Lancamento
-                //    {
-                //        DataLancamento = DateTime.TryParse(row[0]?.ToString(), out var data) ? data : DateTime.Now,
-                //        Descricao = row[1]?.ToString(),
-                //        Categoria = row[2]?.ToString(),
-                //        Valor = ConverterToDecimal(row[3]?.ToString()),
-                //        CentroDeCusto = row[4]?.ToString(),
-                //        Status = row[5]?.ToString()
-                //    };
-
-                //    lista.Add(lancamento);
-                //}
+                return UnprocessableEntity();
             }
 
-            return Ok(lista.Where(x => x.Status.ToUpper().Contains("PENDENTE")).OrderBy(x=>x.Id));
+        }
+        [HttpDelete("DeleteLancamentoById", Name = "DeleteLancamentoById")]
+        public async Task<IActionResult> DeleteLancamento([FromQuery] int idLancamento)
+        {
+            await _lancamentoService.DeleteLancamentoAsync(idLancamento);
+            return Ok("Excluido com sucesso!");
+
+        }
+        //[HttpGet]
+        //public async Task<IActionResult> Get()
+        //{
+        //    //var range = "A2:H"; // Dados comeÁam da linha 2 atÈ a F (Data, DescriÁ„o, Categoria, Valor, CentroDeCusto, Status)
+        //    //var request = _sheetsService.Spreadsheets.Values.Get(_spreadsheetId, range);
+        //    //var response = await request.ExecuteAsync();
+
+        //    //var values = response.Values;
+        //    //var lista = new ConcurrentBag<Lancamento>();
+
+        //    //if (values != null && values.Count > 0)
+        //    //{
+        //    //    // Pegando apenas os ˙ltimos 20
+
+
+        //    //    Parallel.ForEach(values, row =>
+        //    //    {
+
+        //    //        var lancamento = new Lancamento
+        //    //        {
+        //    //            Id = Int32.TryParse(row[0]?.ToString(), out var id) ? id : 0,
+        //    //            DataLancamento = DateTime.TryParse(row[1]?.ToString(), out var data) ? data : DateTime.Now,
+        //    //            Descricao = row[2]?.ToString(),
+        //    //            Categoria = row[3]?.ToString(),
+        //    //            Valor = ConverterToDecimal(row[4]?.ToString()),
+        //    //            CentroDeCusto = row[5]?.ToString(),
+        //    //            Status = row[6]?.ToString() ?? "noExist",
+        //    //        };
+
+        //    //        lista.Add(lancamento);
+        //    //    });
+
+
+        //    // }
+        //   // return Ok(lista.Where(x => x.Status.ToUpper().Contains("PENDENTE")).OrderBy(x => x.Id));
+        //    return Ok();
+        // }
+        [HttpGet("getByUserId",Name = "getByUserId")]
+        public async Task<IActionResult> GetByUserId([FromQuery] int idUser, [FromQuery] int totalItens)
+        {
+            return Ok(await _lancamentoService.GetByUserId(idUser, totalItens));
+        }
+        [HttpGet("GetByUserIdAndStatusPagamento", Name = "GetByUserIdAndStatusPagamento")]
+        public async Task<IActionResult> GetByUserIdAndStatusPagamento([FromQuery] int idUser, [FromQuery]  bool pago, [FromQuery] int totalItens)
+        {
+            return Ok(await _lancamentoService.GetByUserIdAndStatusPagamento(idUser, pago, totalItens));
+        }
+        [HttpPut("postLancamentoByIdStatus", Name = "postLancamentoByIdStatus")]
+        public async Task<IActionResult> UpdateLancamento( int idLancamento,  bool pago)
+        {
+            await _lancamentoService.AtualizarStatusLancamentoAsync(idLancamento, pago);
+            return Ok("Dados atualizados com sucesso!");
         }
 
         private static decimal ConverterToDecimal(string valorTexto)
@@ -117,7 +124,7 @@ namespace LancamentosQuattroCoffe.Controllers
             if (string.IsNullOrWhiteSpace(valorTexto))
                 return 0m;
 
-            // Remove "R$", espa√ßos e pontos (milhar), troca v√≠rgula por ponto
+            // Remove "R$", espaÁos e pontos (milhar), troca vÌrgula por ponto
             var valorLimpo = valorTexto
                 .Replace("R$", "")
                 .Replace(" ", "")
