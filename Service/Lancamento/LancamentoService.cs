@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using LancamentosQuattroCoffe.Models;
 using LancamentosQuattroCoffe.Queries;
 using System.Data;
 
@@ -123,6 +124,39 @@ namespace LancamentosQuattroCoffe.Service.Lancamento
                 {
                     idLancamento = idLancamento,
                 });
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Categoria>> GetCategoriasAsync()
+        {
+            try
+            {
+                using var connection = _connection;
+                if (connection.State != ConnectionState.Open)
+                    connection.Open();
+                return await connection.QueryAsync<Categoria>("SELECT * FROM CATEGORIA");
+             
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        public async Task<IEnumerable<CentroDeCusto>> GetCentroDeCustoAsync()
+        {
+            try
+            {
+                using var connection = _connection;
+                if (connection.State != ConnectionState.Open)
+                    connection.Open();
+                return await connection.QueryAsync<CentroDeCusto>("SELECT * FROM centro_de_custo");
+
+
             }
             catch (Exception)
             {

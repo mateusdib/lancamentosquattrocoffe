@@ -7,5 +7,7 @@
         Task<IEnumerable<Models.Lancamento>> GetByUserIdAndStatusPagamento(int idUsuario, bool pago, int qtdItens);
         Task AtualizarStatusLancamentoAsync(int idLancamento, bool pago);
         Task DeleteLancamentoAsync(int idLancamento);
+        Task<IEnumerable<Models.CentroDeCusto>> GetCentroDeCustoAsync();
+        Task<IEnumerable<Models.Categoria>> GetCategoriasAsync();
     }
 }

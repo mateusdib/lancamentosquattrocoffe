@@ -20,26 +20,6 @@ namespace LancamentosQuattroCoffe.Controllers
 
         public LancamentosController(IConfiguration config, Service.Lancamento.ILancamentoService lancamentoService)
         {
-            _spreadsheetId = "1ui79wvlER3bK2TBycYDIjWbX6bMPRAiUgLsXKljcsf4";
-
-            _lancamentoService = lancamentoService;
-
-            var jsonCredentials = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS_JSON");
-
-            if (string.IsNullOrEmpty(jsonCredentials))
-            {
-                throw new InvalidOperationException("A variável de ambiente GOOGLE_APPLICATION_CREDENTIALS_JSON não foi definida.");
-            }
-
-            // Criação das credenciais a partir do JSON
-            var credential = GoogleCredential.FromJson(jsonCredentials)
-                .CreateScoped(SheetsService.Scope.Spreadsheets);
-
-            _sheetsService = new SheetsService(new BaseClientService.Initializer()
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "Lancamentos .NET"
-            });
             _lancamentoService = lancamentoService;
         }
 
@@ -119,6 +99,16 @@ namespace LancamentosQuattroCoffe.Controllers
             return Ok("Dados atualizados com sucesso!");
         }
 
+        [HttpGet("getCentroDeCusto", Name = "getCentroDeCusto")]
+        public async Task<IActionResult> getCentroDeCusto()
+        {
+            return Ok(await _lancamentoService.GetCentroDeCustoAsync());
+        }
+        [HttpGet("getCategorias", Name = "getCategorias")]
+        public async Task<IActionResult> getCategorias()
+        {
+            return Ok(await _lancamentoService.GetCategoriasAsync());
+        }
         private static decimal ConverterToDecimal(string valorTexto)
         {
             if (string.IsNullOrWhiteSpace(valorTexto))
